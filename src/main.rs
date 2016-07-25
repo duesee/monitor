@@ -17,21 +17,21 @@ fn run(path: &str) -> Result<(), Box<std::error::Error>> {
 
     let max_path_len = paths.iter().map(|s| s.len()).max().unwrap_or(0);
 
-	for path in &paths {
-		let stat = read_file_to_string(path).unwrap_or_else(|e| format!("<{}>", e));
-		println!("{:<pad$} = {}", path, stat.trim(), pad = max_path_len);
-	}
+    for path in &paths {
+        let stat = read_file_to_string(path).unwrap_or_else(|e| format!("<{}>", e));
+        println!("{:<pad$} = {}", path, stat.trim(), pad = max_path_len);
+    }
 
     Ok(())
 }
 
 fn main() {
     let mut args = std::env::args();
-    let _        = args.next().expect("unknown argument environment...");
+    let _ = args.next().expect("unknown argument environment...");
     let filepath = args.next().expect("no monitor file specified...");
 
     match run(&filepath) {
-        Ok(_)  => (),
-        Err(e) => println!("error: {}", e)
+        Ok(_) => (),
+        Err(e) => println!("error: {}", e),
     }
 }
