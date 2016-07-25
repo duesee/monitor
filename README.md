@@ -2,7 +2,7 @@
 
 ```
 cargo build --release
-./target/release/monitor monitor.txt
+watch -n1 ./target/release/monitor monitor.txt
 ```
 
 #Output
