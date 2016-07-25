@@ -9,15 +9,15 @@ fn read_file_to_string<P: AsRef<Path>>(path: P) -> std::io::Result<String> {
     Ok(data)
 }
 
-fn run(path: &str) -> Result<(), Box<std::error::Error>> {
-    let file_content = try!(read_file_to_string(&path));
+fn run<P: AsRef<Path>>(path: P) -> Result<(), Box<std::error::Error>> {
+    let file_content = try!(read_file_to_string(path));
     let mut paths: Vec<_> = file_content.lines().collect();
 
     paths.sort();
 
     let max_path_len = paths.iter().map(|s| s.len()).max().unwrap_or(0);
 
-    for path in &paths {
+    for path in paths {
         let stat = read_file_to_string(path).unwrap_or_else(|e| format!("<{}>", e));
         println!("{:<pad$} = {}", path, stat.trim(), pad = max_path_len);
     }
@@ -30,7 +30,7 @@ fn main() {
     let _ = args.next().expect("unknown argument environment...");
     let filepath = args.next().expect("no monitor file specified...");
 
-    match run(&filepath) {
+    match run(filepath) {
         Ok(_) => (),
         Err(e) => println!("error: {}", e),
     }
