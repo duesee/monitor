@@ -11,13 +11,9 @@ fn read_file_to_string<P: AsRef<Path>>(path: P) -> std::io::Result<String> {
 
 fn run<P: AsRef<Path>>(path: P) -> Result<(), Box<std::error::Error>> {
     let file_content = try!(read_file_to_string(path));
-    let mut paths: Vec<_> = file_content.lines().collect();
+    let max_path_len = file_content.lines().map(str::len).max().unwrap_or(0);
 
-    paths.sort();
-
-    let max_path_len = paths.iter().map(|s| s.len()).max().unwrap_or(0);
-
-    for path in paths {
+    for path in file_content.lines() {
         let stat = read_file_to_string(path).unwrap_or_else(|e| format!("<{}>", e));
         println!("{:<pad$} = {}", path, stat.trim(), pad = max_path_len);
     }
