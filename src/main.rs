@@ -7,11 +7,7 @@ fn read_to_string(mut src: Box<Read>) -> std::io::Result<String> {
     Ok(data)
 }
 
-fn run() -> Result<(), Box<std::error::Error>> {
-    let mut args = std::env::args();
-    let _ = args.next();
-    let path = args.next();
-
+fn run(path: Option<String>) -> Result<(), Box<std::error::Error>> {
     let src: Box<Read> = match path {
         // If path provided read from file...
         Some(path) => Box::new(try!(File::open(path))),
@@ -33,7 +29,11 @@ fn run() -> Result<(), Box<std::error::Error>> {
 }
 
 fn main() {
-    match run() {
+    let mut args = std::env::args();
+    let _ = args.next();
+    let path = args.next();
+
+    match run(path) {
         Ok(_) => (),
         Err(e) => println!("error: {}", e),
     }
