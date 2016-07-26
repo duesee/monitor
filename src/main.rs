@@ -1,20 +1,31 @@
 use std::fs::File;
 use std::io::prelude::*;
-use std::path::Path;
 
-fn read_file_to_string<P: AsRef<Path>>(path: P) -> std::io::Result<String> {
-    let mut file = try!(File::open(path));
+fn read_to_string(mut src: Box<Read>) -> std::io::Result<String> {
     let mut data = String::new();
-    try!(file.read_to_string(&mut data));
+    try!(src.read_to_string(&mut data));
     Ok(data)
 }
 
-fn run<P: AsRef<Path>>(path: P) -> Result<(), Box<std::error::Error>> {
-    let file_content = try!(read_file_to_string(path));
-    let max_path_len = file_content.lines().map(str::len).max().unwrap_or(0);
+fn run() -> Result<(), Box<std::error::Error>> {
+    let mut args = std::env::args();
+    let _ = args.next();
+    let path = args.next();
 
-    for path in file_content.lines() {
-        let stat = read_file_to_string(path).unwrap_or_else(|e| format!("<{}>", e));
+    let src: Box<Read> = match path {
+        // If path provided read from file...
+        Some(path) => Box::new(try!(File::open(path))),
+        // ...else read from stdin.
+        None => Box::new(std::io::stdin()),
+    };
+
+    let src_content = try!(read_to_string(src));
+    let max_path_len = src_content.lines().map(str::len).max().unwrap_or(0);
+
+    for path in src_content.lines() {
+        let stat = File::open(path)
+            .and_then(|f| read_to_string(Box::new(f)))
+            .unwrap_or_else(|e| format!("<{}>", e));
         println!("{:<pad$} = {}", path, stat.trim(), pad = max_path_len);
     }
 
@@ -22,11 +33,7 @@ fn run<P: AsRef<Path>>(path: P) -> Result<(), Box<std::error::Error>> {
 }
 
 fn main() {
-    let mut args = std::env::args();
-    let _ = args.next().expect("unknown argument environment...");
-    let filepath = args.next().expect("no monitor file specified...");
-
-    match run(filepath) {
+    match run() {
         Ok(_) => (),
         Err(e) => println!("error: {}", e),
     }

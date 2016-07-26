@@ -1,13 +1,14 @@
-#Usage
+# Build
 
 ```
-cargo build --release
-watch -n1 ./target/release/monitor monitor.txt
+$ cargo build --release
 ```
 
-#Output
+# Usage
 
 ```
+$ watch -n1 ./target/release/monitor monitor.txt
+
 /etc/shadow                                                       = <Permission denied (os error 13)>
 /proc/sys/vm/hugepages_treat_as_movable                           = 0
 /proc/sys/vm/hugetlb_shm_group                                    = 0
@@ -30,4 +31,11 @@ watch -n1 ./target/release/monitor monitor.txt
 /sys/kernel/mm/ksm/pages_volatile                                 = 0
 /sys/kernel/mm/ksm/run                                            = 1
 /sys/kernel/mm/ksm/sleep_millisecs                                = 2
+```
+
+```
+$ find /proc -name "*_va_*" 2>/dev/null | ./target/release/monitor
+
+/proc/sys/kernel/randomize_va_space = 2
+/proc/sys/vm/legacy_va_layout       = 0
 ```
