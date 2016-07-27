@@ -14,10 +14,10 @@ fn run(path: Option<String>) -> Result<(), Box<Error>> {
         None => Box::new(stdin()),
     };
 
-    let src_content = try!(read_string_from_src(src));
-    let max_path_len = src_content.lines().map(str::len).max().unwrap_or(0);
+    let content = try!(read_string_from_src(src));
+    let max_path_len = content.lines().map(str::len).max().unwrap_or(0);
 
-    for path in src_content.lines() {
+    for path in content.lines() {
         let stat = File::open(path)
             .and_then(|f| read_string_from_src(Box::new(f)))
             .unwrap_or_else(|e| format!("<{}>", e));
