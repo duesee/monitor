@@ -1,26 +1,25 @@
+use std::error::Error;
 use std::fs::File;
-use std::io::prelude::*;
+use std::io::{Read, Result as IoResult, stdin};
 
-fn read_to_string(mut src: Box<Read>) -> std::io::Result<String> {
+fn read_string_from_src(mut src: Box<Read>) -> IoResult<String> {
     let mut data = String::new();
     try!(src.read_to_string(&mut data));
     Ok(data)
 }
 
-fn run(path: Option<String>) -> Result<(), Box<std::error::Error>> {
+fn run(path: Option<String>) -> Result<(), Box<Error>> {
     let src: Box<Read> = match path {
-        // If path provided read from file...
         Some(path) => Box::new(try!(File::open(path))),
-        // ...else read from stdin.
-        None => Box::new(std::io::stdin()),
+        None => Box::new(stdin()),
     };
 
-    let src_content = try!(read_to_string(src));
+    let src_content = try!(read_string_from_src(src));
     let max_path_len = src_content.lines().map(str::len).max().unwrap_or(0);
 
     for path in src_content.lines() {
         let stat = File::open(path)
-            .and_then(|f| read_to_string(Box::new(f)))
+            .and_then(|f| read_string_from_src(Box::new(f)))
             .unwrap_or_else(|e| format!("<{}>", e));
         println!("{:<pad$} = {}", path, stat.trim(), pad = max_path_len);
     }
@@ -29,12 +28,6 @@ fn run(path: Option<String>) -> Result<(), Box<std::error::Error>> {
 }
 
 fn main() {
-    let mut args = std::env::args();
-    let _ = args.next();
-    let path = args.next();
-
-    match run(path) {
-        Ok(_) => (),
-        Err(e) => println!("error: {}", e),
-    }
+    let path = std::env::args().nth(1);
+    run(path).unwrap_or_else(|e| println!("error: {}", e));
 }
