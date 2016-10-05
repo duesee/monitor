@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::{Read, Result as IoResult, stdin};
 
-fn read_string_from_src(mut src: Box<Read>) -> IoResult<String> {
+fn read_string_from_src<T: Read>(mut src: T) -> IoResult<String> {
     let mut data = String::new();
     try!(src.read_to_string(&mut data));
     Ok(data)
@@ -19,7 +19,7 @@ fn run(path: Option<String>) -> Result<(), Box<Error>> {
 
     for path in content.lines() {
         let stat = File::open(path)
-            .and_then(|f| read_string_from_src(Box::new(f)))
+            .and_then(read_string_from_src)
             .unwrap_or_else(|e| format!("<{}>", e));
         println!("{:<pad$} = {}", path, stat.trim(), pad = max_path_len);
     }
