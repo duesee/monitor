@@ -1,33 +1,89 @@
+extern crate csv;
+extern crate docopt;
+extern crate rustc_serialize;
+
+use docopt::Docopt;
 use std::error::Error;
-use std::fs::File;
-use std::io::{Read, Result as IoResult, stdin};
+use std::fs::{OpenOptions, File};
+use std::io::{Read, Write, Result as IoResult, stdin};
+
+const USAGE: &'static str = "
+Monitor.
+
+Reads, line-by-line, all files specified in <file> (or from stdin otherwise) and show it's content on the screen.
+Optionally, the gathered values can be appended to <outfile> in CSV format.
+
+Usage: monitor [options] [<file>]
+
+Options:
+  -o --outfile=<outfile>  Append results in CSV format to outfile.
+  -h --help               Show this help screen.
+";
+
+#[derive(RustcDecodable)]
+struct Args {
+    arg_file: Option<String>,
+    flag_outfile: Option<String>,
+}
 
 fn read_string_from_src<T: Read>(mut src: T) -> IoResult<String> {
     let mut data = String::new();
-    try!(src.read_to_string(&mut data));
+    src.read_to_string(&mut data)?;
     Ok(data)
 }
 
-fn run(path: Option<String>) -> Result<(), Box<Error>> {
-    let src: Box<Read> = match path {
-        Some(path) => Box::new(try!(File::open(path))),
+fn run(file: Option<String>, outfile: Option<String>) -> Result<(), Box<Error>> {
+    let src: Box<Read> = match file {
+        Some(path) => Box::new(File::open(path)?),
         None => Box::new(stdin()),
     };
 
-    let content = try!(read_string_from_src(src));
+    let content = read_string_from_src(src)?;
     let max_path_len = content.lines().map(str::len).max().unwrap_or(0);
 
-    for path in content.lines() {
-        let stat = File::open(path)
-            .and_then(read_string_from_src)
-            .unwrap_or_else(|e| format!("<{}>", e));
-        println!("{:<pad$} = {}", path, stat.trim(), pad = max_path_len);
+    let stats = {
+        let mut tmp = Vec::new();
+
+        for path in content.lines() {
+            let stat = File::open(path)
+                .and_then(read_string_from_src)
+                .unwrap_or_else(|e| format!("<{}>", e));
+
+            tmp.push((path.to_owned(), stat.trim().to_owned()));
+        }
+
+        tmp
+    };
+
+    // Print human readable results...
+    for &(ref path, ref stat) in &stats {
+        println!("{:<pad$} = {}", path, stat, pad = max_path_len);
+    }
+
+    // ...and, if requested, append CSV line to specified outfile.
+    if let Some(outfile) = outfile {
+        // Strip paths from vector first...
+        let stats = stats.into_iter().map(|(_, stat)| stat).collect::<Vec<_>>();
+
+        let mut writer = csv::Writer::from_memory().double_quote(false);
+        writer.encode(stats)?;
+
+        let mut outfile = OpenOptions::new()
+            .write(true)
+            .create(true)
+            .append(true)
+            .open(outfile)?;
+
+        outfile.write(writer.as_bytes())?;
     }
 
     Ok(())
 }
 
 fn main() {
-    let path = std::env::args().nth(1);
-    run(path).unwrap_or_else(|e| println!("error: {}", e));
+    let args: Args = Docopt::new(USAGE)
+        .and_then(|d| d.decode())
+        .unwrap_or_else(|e| e.exit());
+
+    run(args.arg_file, args.flag_outfile).unwrap_or_else(|e| println!("error: {}", e));
 }
