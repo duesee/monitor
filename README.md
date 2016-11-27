@@ -7,7 +7,7 @@ $ cargo build --release
 # Usage
 
 ```
-$ watch -n1 ./target/release/monitor monitor.txt
+$ watch -n1 "./target/release/monitor assets/monitor_1.txt"
 
 /etc/shadow                                                       = <Permission denied (os error 13)>
 /proc/sys/vm/hugepages_treat_as_movable                           = 0
@@ -38,4 +38,20 @@ $ find /proc -name "*_va_*" 2>/dev/null | ./target/release/monitor
 
 /proc/sys/kernel/randomize_va_space = 2
 /proc/sys/vm/legacy_va_layout       = 0
+```
+
+```
+$ watch -n0.1 "./target/debug/monitor assets/monitor_2.txt -o graph.csv"
+
+[...]
+
+$ cat graph.csv 
+0,0,0,0,0,0,0,1,0,0,100,0,0,0,20
+0,0,0,0,0,0,0,1,0,0,100,0,0,0,20
+0,0,0,0,0,0,0,1,0,0,100,0,0,0,20
+0,0,0,0,0,0,0,1,0,0,100,0,0,0,20
+0,0,0,0,0,0,0,1,0,0,100,0,0,0,20
+0,0,0,0,0,0,0,1,0,0,100,0,0,0,20
+0,0,0,0,0,0,0,1,0,0,100,0,0,0,20
+0,0,0,0,0,0,0,1,0,0,100,0,0,0,20
 ```
