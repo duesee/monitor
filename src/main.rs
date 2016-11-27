@@ -10,8 +10,8 @@ use std::io::{Read, Write, Result as IoResult, stdin};
 const USAGE: &'static str = "
 Monitor.
 
-Reads, line-by-line, all files specified in <file> (or from stdin otherwise) and show it's content on the screen.
-Optionally, the gathered values can be appended to <outfile> in CSV format.
+Reads all files specified line-by-line in <file> (or from stdin otherwise) and shows their content structured on the screen.
+The gathered values can optionally be appended line-by-line to <outfile> in CSV format.
 
 Usage: monitor [options] [<file>]
 
