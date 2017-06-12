@@ -1,6 +1,7 @@
-extern crate csv;
+#[macro_use]
+extern crate serde_derive;
 extern crate docopt;
-extern crate rustc_serialize;
+extern crate csv;
 
 use docopt::Docopt;
 use std::error::Error;
@@ -20,7 +21,7 @@ Options:
   -h --help               Show this help screen.
 ";
 
-#[derive(RustcDecodable)]
+#[derive(Debug, Deserialize)]
 struct Args {
     arg_file: Option<String>,
     flag_outfile: Option<String>,
@@ -82,7 +83,7 @@ fn run(file: Option<String>, outfile: Option<String>) -> Result<(), Box<Error>> 
 
 fn main() {
     let args: Args = Docopt::new(USAGE)
-        .and_then(|d| d.decode())
+        .and_then(|d| d.deserialize())
         .unwrap_or_else(|e| e.exit());
 
     run(args.arg_file, args.flag_outfile).unwrap_or_else(|e| println!("error: {}", e));
